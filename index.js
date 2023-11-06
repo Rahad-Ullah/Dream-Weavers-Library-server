@@ -30,6 +30,14 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const booksCollection = client.db('dreamWeaversDB').collection('books')
+
+    // insert book to database
+    app.post('/books', async (req, res) => {
+        const newBook = req.body;
+        const result = await booksCollection.insertOne(newBook)
+        res.send(result)
+    })
 
     
 
