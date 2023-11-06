@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000;
@@ -32,6 +32,15 @@ async function run() {
 
     const booksCollection = client.db('dreamWeaversDB').collection('books')
 
+    // get specific book from Database by id
+    app.get('/books', async (req, res) => {
+        const id = req.query.id;
+        const filter = {_id: new ObjectId(id)}
+        console.log(filter)
+        const result = await booksCollection.findOne(filter)
+        res.send(result)
+    })
+    
     // insert book to database
     app.post('/books', async (req, res) => {
         const newBook = req.body;
