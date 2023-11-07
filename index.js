@@ -31,6 +31,7 @@ async function run() {
     await client.connect();
 
     const booksCollection = client.db('dreamWeaversDB').collection('books')
+    const categoriesCollection = client.db('dreamWeaversDB').collection('categories')
 
     // get specific book from Database by id
     app.get('/book', async (req, res) => {
@@ -39,7 +40,7 @@ async function run() {
         const result = await booksCollection.findOne(filter)
         res.send(result)
     })
-    
+
     // get multiple books on specific category
     app.get('/books', async (req, res) => {
       const category = req.query.category;
@@ -53,6 +54,12 @@ async function run() {
         const newBook = req.body;
         const result = await booksCollection.insertOne(newBook)
         res.send(result)
+    })
+
+    // get all categories
+    app.get('/categories', async (req, res) => {
+      const result = await categoriesCollection.find().toArray()
+      res.send(result)
     })
 
     
