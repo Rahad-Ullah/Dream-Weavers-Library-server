@@ -39,7 +39,7 @@ async function run() {
         const result = await booksCollection.findOne(filter)
         res.send(result)
     })
-
+    
     // get multiple books on specific category
     app.get('/books', async (req, res) => {
       const category = req.query.category;
