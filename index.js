@@ -33,12 +33,19 @@ async function run() {
     const booksCollection = client.db('dreamWeaversDB').collection('books')
 
     // get specific book from Database by id
-    app.get('/books', async (req, res) => {
+    app.get('/book', async (req, res) => {
         const id = req.query.id;
         const filter = {_id: new ObjectId(id)}
-        console.log(filter)
         const result = await booksCollection.findOne(filter)
         res.send(result)
+    })
+
+    // get multiple books on specific category
+    app.get('/books', async (req, res) => {
+      const category = req.query.category;
+      const filter = {category: category}
+      const result = await booksCollection.find(filter).toArray()
+      res.send(result)
     })
     
     // insert book to database
