@@ -31,19 +31,20 @@ async function run() {
     await client.connect();
 
     const booksCollection = client.db('dreamWeaversDB').collection('books')
+    const borrowedBooksCollection = client.db('dreamWeaversDB').collection('borrowedBooks')
     const categoriesCollection = client.db('dreamWeaversDB').collection('categories')
 
     // get specific book from Database by id
-    app.get('/book', async (req, res) => {
-        const id = req.query.id;
+    app.get('/book/:id', async (req, res) => {
+        const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
         const result = await booksCollection.findOne(filter)
         res.send(result)
     })
 
     // get multiple books on specific category
-    app.get('/books', async (req, res) => {
-      const category = req.query.category;
+    app.get('/books/:category', async (req, res) => {
+      const category = req.params.category;
       const filter = {category: category}
       const result = await booksCollection.find(filter).toArray()
       res.send(result)
@@ -59,6 +60,13 @@ async function run() {
     // get all categories
     app.get('/categories', async (req, res) => {
       const result = await categoriesCollection.find().toArray()
+      res.send(result)
+    })
+
+    // insert borrowed books
+    app.post('/borrowed-books', async (req, res) => {
+      const book = req.body;
+      const result = await borrowedBooksCollection.insertOne(book)
       res.send(result)
     })
 
