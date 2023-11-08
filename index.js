@@ -36,7 +36,7 @@ async function run() {
     const userCollection = client.db('dreamWeaversDB').collection('users')
 
     // get specific book from Database by id
-    app.get('/book/:id', async (req, res) => {
+    app.get('/book/:id', async (req, res) => {  
         const id = req.params.id;
         const filter = {_id: new ObjectId(id)}
         const result = await booksCollection.findOne(filter)
@@ -50,6 +50,34 @@ async function run() {
       const result = await booksCollection.find(filter).toArray()
       res.send(result)
     })
+
+    // get available books only
+    app.get('/avail-books', async (req, res) => {
+      const filter = {quantity: {$gt: 0}}
+      const result = await booksCollection.find(filter).toArray()
+      res.send(result)
+    })
+
+    // update available books
+    app.patch('/avail-books', async (req, res) => {
+      const id = req.query.id;
+      const filter = {_id: new ObjectId(id)}
+      const book = req.body;
+      console.log(book)
+      const {name, author_name, image, category, rating} = book;
+      const updateDoc = {
+        $set: {
+          name,
+          author_name, 
+          image, 
+          category, 
+          rating
+        }
+      }
+      const result = await booksCollection.updateOne(filter, updateDoc)
+      res.send(result)
+      
+    })
     
     // insert book to database
     app.post('/books', async (req, res) => {
@@ -58,10 +86,30 @@ async function run() {
         res.send(result)
     })
 
-    // update book quantity
+    // decrease book quantity
     app.patch('/books', async (req, res) => {
+      const query = {name: req.query.name}
+      const isBorrowed = await borrowedBooksCollection.findOne(query)
+      if(isBorrowed){
+        res.status(401).send({message: 'failed'})
+        return;
+      }
       const id = req.query.id;
       const filter = {_id: new ObjectId(id)}
+      const newQuantity = req.body.quantity;
+      const updateDoc = {
+        $set: {
+          quantity: newQuantity
+        }
+      }
+      const result = await booksCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
+    // increase book quantity
+    app.patch('/book', async (req, res) => {
+      const name = req.query.name;
+      const filter = {name}
       const newQuantity = req.body.quantity;
       const updateDoc = {
         $set: {
@@ -90,7 +138,21 @@ async function run() {
     // insert borrowed books
     app.post('/borrowed-books', async (req, res) => {
       const book = req.body;
+      const filter = {name: book.name};
+      const isBorrowed = await borrowedBooksCollection.findOne(filter)
+      if(isBorrowed){
+        res.status(401).send({message: 'failed'})
+        return;
+      }
       const result = await borrowedBooksCollection.insertOne(book)
+      res.send(result)
+    })
+
+     // delete from borrowed books
+     app.delete('/borrowed-books', async (req, res) => {
+      const id = req.query.id;
+      const filter = {_id: new ObjectId(id)}
+      const result = await borrowedBooksCollection.deleteOne(filter)
       res.send(result)
     })
 
