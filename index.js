@@ -78,6 +78,15 @@ async function run() {
       res.send(result)
     })
 
+    // get all borrowed books
+    app.get('/borrowed-books', async (req, res) => {
+      const email = req.query.email;
+      const filter = {email}
+      const result = await borrowedBooksCollection.find(filter).toArray()
+      res.send(result)
+      console.log(result.length)
+    })
+
     // insert borrowed books
     app.post('/borrowed-books', async (req, res) => {
       const book = req.body;
@@ -86,9 +95,17 @@ async function run() {
     })
 
     // set user
-    app.post('/set-user', async (req, res) => {
+    app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await userCollection.insertOne(user)
+      res.send(result)
+    })
+
+    // get user
+    app.get('/users', async (req, res) => {
+      const email = req.query.email;
+      const filter = {email}
+      const result = await userCollection.findOne(filter)
       res.send(result)
     })
 
