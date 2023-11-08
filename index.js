@@ -33,6 +33,7 @@ async function run() {
     const booksCollection = client.db('dreamWeaversDB').collection('books')
     const borrowedBooksCollection = client.db('dreamWeaversDB').collection('borrowedBooks')
     const categoriesCollection = client.db('dreamWeaversDB').collection('categories')
+    const userCollection = client.db('dreamWeaversDB').collection('users')
 
     // get specific book from Database by id
     app.get('/book/:id', async (req, res) => {
@@ -81,6 +82,13 @@ async function run() {
     app.post('/borrowed-books', async (req, res) => {
       const book = req.body;
       const result = await borrowedBooksCollection.insertOne(book)
+      res.send(result)
+    })
+
+    // set user
+    app.post('/set-user', async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user)
       res.send(result)
     })
 
