@@ -57,6 +57,20 @@ async function run() {
         res.send(result)
     })
 
+    // update book quantity
+    app.patch('/books', async (req, res) => {
+      const id = req.query.id;
+      const filter = {_id: new ObjectId(id)}
+      const newQuantity = req.body.quantity;
+      const updateDoc = {
+        $set: {
+          quantity: newQuantity
+        }
+      }
+      const result = await booksCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
     // get all categories
     app.get('/categories', async (req, res) => {
       const result = await categoriesCollection.find().toArray()
