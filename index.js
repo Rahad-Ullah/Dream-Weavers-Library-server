@@ -1,16 +1,20 @@
 const express = require('express');
 const cors = require('cors');
-var jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser')
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors())
+app.use(cors({
+  origin: [
+    `http://localhost:5173`,
+    `https://dream-weavers-library.web.app`,
+    `https://dream-weavers-library.firebaseapp.com`,
+  ],
+  credentials: true
+}))
 app.use(express.json())
-app.use(cookieParser())
 
 
 
@@ -53,8 +57,7 @@ async function run() {
 
     // get available books only
     app.get('/avail-books', async (req, res) => {
-      const filter = {quantity: {$gt: 0}}
-      const result = await booksCollection.find(filter).toArray()
+      const result = await booksCollection.find().toArray()
       res.send(result)
     })
 
@@ -63,7 +66,7 @@ async function run() {
       const id = req.query.id;
       const filter = {_id: new ObjectId(id)}
       const book = req.body;
-      console.log(book)
+
       const {name, author_name, image, category, rating} = book;
       const updateDoc = {
         $set: {
@@ -88,12 +91,6 @@ async function run() {
 
     // decrease book quantity
     app.patch('/books', async (req, res) => {
-      const query = {name: req.query.name}
-      const isBorrowed = await borrowedBooksCollection.findOne(query)
-      if(isBorrowed){
-        res.status(401).send({message: 'failed'})
-        return;
-      }
       const id = req.query.id;
       const filter = {_id: new ObjectId(id)}
       const newQuantity = req.body.quantity;
@@ -111,6 +108,7 @@ async function run() {
       const name = req.query.name;
       const filter = {name}
       const newQuantity = req.body.quantity;
+      console.log(newQuantity)
       const updateDoc = {
         $set: {
           quantity: newQuantity
@@ -138,12 +136,6 @@ async function run() {
     // insert borrowed books
     app.post('/borrowed-books', async (req, res) => {
       const book = req.body;
-      const filter = {name: book.name};
-      const isBorrowed = await borrowedBooksCollection.findOne(filter)
-      if(isBorrowed){
-        res.status(401).send({message: 'failed'})
-        return;
-      }
       const result = await borrowedBooksCollection.insertOne(book)
       res.send(result)
     })
@@ -154,6 +146,18 @@ async function run() {
       const filter = {_id: new ObjectId(id)}
       const result = await borrowedBooksCollection.deleteOne(filter)
       res.send(result)
+    })
+
+    // set isBorrowed status
+    app.get('/borrowed-status', async (req, res) => {
+      const filter = {name: req.query.name, email: req.query.email}
+      const result = await borrowedBooksCollection.findOne(filter)
+      if(result){
+        res.send({status: true})
+      }
+      else{
+        res.send({status: false})
+      }
     })
 
     // set user
